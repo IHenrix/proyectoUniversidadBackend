@@ -1,0 +1,11 @@
+# Carpetas generadas
+__pycache__/
+env/
+
+# Archivos temporales
+*.pyc
+*.pyo
+*.log
+
+# Archivos de entorno
+.env
