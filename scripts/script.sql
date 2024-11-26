@@ -23,7 +23,8 @@ CREATE TABLE usuario(
   paterno VARCHAR(60) NOT NULL,
   materno VARCHAR(60) NOT NULL,
   sexo char(1) NOT NULL,
-  correo VARCHAR(120) NOT NULL,  
+  correo VARCHAR(120) NOT NULL,
+  codigo VARCHAR(20) NULL,
   rol_id INT,
   activo BOOLEAN DEFAULT TRUE,
   FOREIGN KEY (rol_id) REFERENCES rol(id)
@@ -70,11 +71,11 @@ CREATE TABLE nota (
 INSERT INTO rol (nombre) VALUES ('ALUMNO');
 INSERT INTO rol (nombre) VALUES ('PROFESOR');
 
-INSERT INTO usuario (username, pass, nombre, paterno, materno,sexo,correo, rol_id) 
+INSERT INTO usuario (username, pass, nombre, paterno, materno,sexo,correo,codigo, rol_id) 
 VALUES 
-  ('RPRADA', 'Marco1415', 'RICARDO ENRIQUE', 'PRADA', 'GUERRA','M','rprada@hotmail.com', 2),
-  ('JMORALES', 'Marco1415', 'JUAN JOSÉ MORALES', 'MORALES', 'VELASQUEZ','M','jmorales@hotmail.com', 1),
-  ('NLOPEZO', 'Marco1415', 'NIKOL', 'LOPEZ', 'OCHOA','F','nlopezo@hotmail.com', 1);
+  ('RPRADA', 'Marco1415', 'RICARDO ENRIQUE', 'PRADA', 'GUERRA','M','rprada@hotmail.com',null, 2),
+  ('JMORALES', 'Marco1415', 'JUAN JOSÉ MORALES', 'MORALES', 'VELASQUEZ','M','jmorales@hotmail.com','U23316357', 1),
+  ('NLOPEZO', 'Marco1415', 'NIKOL', 'LOPEZ', 'OCHOA','F','nlopezo@hotmail.com','U23316358', 1);
   
 INSERT INTO curso (nombre,horas_semanales,creditos,modalidad) VALUES ('Taller de programación (1I50N)',4,3,'P');
 INSERT INTO curso (nombre,horas_semanales,creditos,modalidad) VALUES ('Herramientas informáticas para la toma de decisiones (1I04N)',2,2,'V');
@@ -149,12 +150,35 @@ SELECT * FROM usuario u WHERE u.username='RPRADA' AND u.pass='Marco1415';
 -- LISTAR CURSOS QUE TIENE ASIGNADO UN ALUMNO
 
 SELECT c.id, c.nombre AS curso,c.horas_semanales,c.creditos,c.modalidad,
-CONCAT(u.nombre, ' ', u.paterno,' ',u.materno) docente 
+CONCAT(u.nombre, ' ', u.paterno,' ',u.materno) alumno,
+(SELECT CONCAT(d.nombre, ' ', d.paterno, ' ', d.materno) AS docente 
+FROM docente_curso dc
+INNER JOIN curso cu ON dc.curso_id = cu.id
+INNER JOIN usuario d ON dc.usuario_id = d.id
+WHERE cu.id = c.id 
+  AND d.rol_id = 2
+ORDER BY docente ASC
+LIMIT 1
+) docente
 FROM alumno_curso uc
 INNER JOIN curso c ON uc.curso_id=c.id
 INNER JOIN usuario u ON uc.usuario_id=u.id
 WHERE uc.usuario_id=2 AND u.rol_id=1
 ORDER BY curso asc;
+
+
+
+
+SELECT 
+uc.usuario_id id,
+u.nombre,u.paterno,u.materno,u.codigo
+FROM alumno_curso uc
+INNER JOIN usuario u ON uc.usuario_id=u.id
+WHERE uc.curso_id=1
+ORDER BY paterno asc;
+
+
+
 
 
 

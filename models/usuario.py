@@ -10,9 +10,3 @@ class Usuario:
         self.correo = correo
         self.rol_id = rol_id
         self.activo = activo
-
-    def __repr__(self):
-        return (
-            f"Usuario(id={self.id}, username='{self.username}', nombre='{self.nombre}', "
-            f"paterno='{self.paterno}', materno='{self.materno}', rol_id={self.rol_id}, activo={self.activo})"
-        )
