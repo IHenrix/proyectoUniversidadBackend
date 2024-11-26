@@ -1,0 +1,5 @@
+pip install flask flask-mysql-connector
+pip install flask-cors  
+pip install flask     
+python -m venv env  
+.\env\Scripts\activate        

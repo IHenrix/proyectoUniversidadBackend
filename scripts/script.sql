@@ -29,7 +29,16 @@ CREATE TABLE usuario(
   FOREIGN KEY (rol_id) REFERENCES rol(id)
 );
 
-CREATE TABLE usuario_curso(
+CREATE TABLE alumno_curso(
+	id INT AUTO_INCREMENT PRIMARY KEY,
+	usuario_id INT NOT NULL,
+    curso_id INT NOT NULL,
+	activo BOOLEAN DEFAULT TRUE,
+    FOREIGN KEY (usuario_id) REFERENCES usuario(id),
+	FOREIGN KEY (curso_id) REFERENCES curso(id)
+);
+
+CREATE TABLE docente_curso(
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	usuario_id INT NOT NULL,
     curso_id INT NOT NULL,
@@ -50,10 +59,10 @@ CREATE TABLE criterio_evaluacion (
 
 CREATE TABLE nota (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    usuario_curso_id INT NOT NULL,
+    alumno_curso_id INT NOT NULL,
     criterio_id INT NOT NULL,
     nota DECIMAL(5,2) NOT NULL,
-    FOREIGN KEY (usuario_curso_id) REFERENCES usuario_curso(id),
+    FOREIGN KEY (alumno_curso_id) REFERENCES alumno_curso(id),
     FOREIGN KEY (criterio_id) REFERENCES criterio_evaluacion(id)
 );
 
@@ -74,9 +83,11 @@ INSERT INTO curso (nombre,horas_semanales,creditos,modalidad) VALUES ('Investiga
 INSERT INTO curso (nombre,horas_semanales,creditos,modalidad) VALUES ('Estadística descriptiva y probabilidades (1S21V)',3,3,'V');
 INSERT INTO curso (nombre,horas_semanales,creditos,modalidad) VALUES ('Inglés III (1N08I)',3,3,'V');
 
-INSERT INTO usuario_curso (usuario_id,curso_id)
-VALUES (1,1),(1,2),(1,3),(1,4),(1,5),(1,6),(2,1),(2,2),(2,3),(2,4),(2,5),(2,6),(3,1),(3,2),(3,3);
+INSERT INTO docente_curso (usuario_id,curso_id)
+VALUES (1,1),(1,2),(1,3),(1,4),(1,5),(1,6);
 
+INSERT INTO alumno_curso (usuario_id,curso_id)
+VALUES (2,1),(2,2),(2,3),(2,4),(2,5),(2,6),(3,1),(3,2),(3,3);
 
 -- Inserts para criterios de evaluación del curso 'Herramientas informáticas para la toma de decisiones (1I04N)'
 INSERT INTO criterio_evaluacion (curso_id, nombre_criterio, orden, porcentaje) 
@@ -132,7 +143,20 @@ VALUES
 (4, 'Avance de informe 3 (AIF3)', 3, 20.00),
 (4, 'Informe final (IF)', 4, 40.00);
 
+-- BUSCAR USUARIO
+SELECT * FROM usuario u WHERE u.username='RPRADA' AND u.pass='Marco1415';
 
-SELECT * FROM usuario u WHERE u.username='RPRADA';
+-- LISTAR CURSOS QUE TIENE ASIGNADO UN ALUMNO
+
+SELECT c.id, c.nombre AS curso,c.horas_semanales,c.creditos,c.modalidad,
+CONCAT(u.nombre, ' ', u.paterno,' ',u.materno) docente 
+FROM alumno_curso uc
+INNER JOIN curso c ON uc.curso_id=c.id
+INNER JOIN usuario u ON uc.usuario_id=u.id
+WHERE uc.usuario_id=2 AND u.rol_id=1
+ORDER BY curso asc;
+
+
+
 
 
