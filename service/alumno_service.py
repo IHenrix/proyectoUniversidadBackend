@@ -1,5 +1,6 @@
 from db_connection import get_db_connection, db_config
 from models.curso_alumno import CursoAlumno
+from models.notas_alumnos import NotasAlumnos
 
 class AlumnoService:
     
@@ -47,3 +48,36 @@ class AlumnoService:
             connection.close()
 
         return cursos
+    
+    def listar_notas_alumnos(self, curso_id, alumno_curso_id):
+        """Obtiene la lista de criterios de evaluación con notas de un alumno."""
+        connection = get_db_connection(db_config)
+        cursor = connection.cursor(dictionary=True)
+        notas = []
+
+        try:
+            query = """
+                SELECT a.id, a.nombre_criterio AS criterio, a.orden, a.porcentaje,
+                       n.nota,CAST(n.nota_alumno AS UNSIGNED) as nota_alumno
+                FROM criterio_evaluacion a
+                LEFT JOIN nota n ON a.id = n.criterio_id AND n.alumno_curso_id = %s
+                WHERE a.curso_id = %s
+                ORDER BY a.orden ASC;
+            """
+            cursor.execute(query, (alumno_curso_id, curso_id))
+            results = cursor.fetchall()
+            for result in results:
+                nota = NotasAlumnos(
+                    id=result['id'],
+                    criterio=result['criterio'],
+                    orden=result['orden'],
+                    porcentaje=result['porcentaje'],
+                    nota=result['nota'],
+                    notaAlumno=result['nota_alumno']
+                )
+                notas.append(nota)
+        finally:
+            cursor.close()
+            connection.close()
+
+        return notas

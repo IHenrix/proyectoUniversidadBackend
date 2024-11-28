@@ -69,5 +69,30 @@ def listar_alumnos_por_cursos():
 
     return jsonify([usuario.__dict__ for usuario in usuarios]), 200
 
+@app.route('/alumno/notas', methods=['GET'])
+def listar_notas_alumno():
+    curso_id = request.args.get('cursoId')
+    alumno_curso_id = request.args.get('alumnoCursoId')
+    notas = alumno_service.listar_notas_alumnos(curso_id, alumno_curso_id)
+
+    if not notas:
+        return jsonify([]), 200
+
+    return jsonify([nota.__dict__ for nota in notas]), 200
+
+
+@app.route('/docente/registrar-editar-notas', methods=['POST'])
+def registrar_o_editar_notas():
+    data = request.json
+    alumno_curso_id = data.get('alumnoCursoId')
+    curso_id = data.get('cursoId')
+    notas = data.get('notas')
+
+    try:
+        docente_service.registrar_o_editar_notas(alumno_curso_id, curso_id, notas)
+        return jsonify({"message": "Notas registradas o editadas con éxito"}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(debug=True)

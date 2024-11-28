@@ -34,6 +34,9 @@ CREATE TABLE alumno_curso(
 	id INT AUTO_INCREMENT PRIMARY KEY,
 	usuario_id INT NOT NULL,
     curso_id INT NOT NULL,
+    estado char(1) DEFAULT 'E' NOT NULL,
+    nota_final DECIMAL(5,2) NULL,
+    nota_alumno_final DECIMAL(5,2) NULL,
 	activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id),
 	FOREIGN KEY (curso_id) REFERENCES curso(id)
@@ -62,7 +65,8 @@ CREATE TABLE nota (
     id INT AUTO_INCREMENT PRIMARY KEY,
     alumno_curso_id INT NOT NULL,
     criterio_id INT NOT NULL,
-    nota DECIMAL(5,2) NOT NULL,
+    nota DECIMAL(5,2) NULL,
+    nota_alumno DECIMAL(5,2) NULL,
     FOREIGN KEY (alumno_curso_id) REFERENCES alumno_curso(id),
     FOREIGN KEY (criterio_id) REFERENCES criterio_evaluacion(id)
 );
@@ -166,16 +170,35 @@ INNER JOIN usuario u ON uc.usuario_id=u.id
 WHERE uc.usuario_id=2 AND u.rol_id=1
 ORDER BY curso asc;
 
-
-
-
-SELECT 
-uc.usuario_id id,
+-- listar alumnos por curso
+SELECT  
+uc.id,
 u.nombre,u.paterno,u.materno,u.codigo
 FROM alumno_curso uc
 INNER JOIN usuario u ON uc.usuario_id=u.id
 WHERE uc.curso_id=1
 ORDER BY paterno asc;
+
+
+-- listar notas de un curso de un alumno especifico
+SELECT a.id,a.nombre_criterio criterio,a.orden,a.porcentaje,
+n.nota
+ from criterio_evaluacion a 
+LEFT JOIN nota n on a.id=n.criterio_id and n.alumno_curso_id=7
+WHERE a.curso_id=1 
+ORDER BY  orden asc;
+
+SELECT count(*) FROM nota a
+WHERE a.criterio_id=10 and alumno_curso_id=1;
+
+INSERT INTO nota(alumno_curso_id,criterio_id,nota,nota_alumno)
+VALUES(1,10,17.5,17);
+
+UPDATE nota
+SET nota=20,
+nota_alumno=20
+WHERE a.criterio_id=10 and alumno_curso_id=1;
+
 
 
 

@@ -44,7 +44,7 @@ class DocenteService:
         try:
             query = """
                 SELECT 
-                uc.usuario_id id,
+                uc.id,
                 u.nombre,u.paterno,u.materno,u.codigo
                 FROM alumno_curso uc
                 INNER JOIN usuario u ON uc.usuario_id=u.id
@@ -67,3 +67,90 @@ class DocenteService:
             connection.close()
 
         return alumnoListaCursos
+
+    def registrar_o_editar_notas(self, alumno_curso_id, curso_id, notas):
+        """Registra, edita o elimina las notas del alumno."""
+        connection = get_db_connection(db_config)
+        cursor = connection.cursor()
+        try:
+            for nota in notas:
+                criterio_id = nota.get('id')
+                nota_valor = self._convert_to_valid_number(nota.get('nota'))
+                nota_alumno = self._convert_to_valid_number(nota.get('notaAlumno'))
+                cursor.execute(
+                    "SELECT COUNT(*) FROM nota WHERE criterio_id = %s AND alumno_curso_id = %s",
+                    (criterio_id, alumno_curso_id)
+                )
+                count = cursor.fetchone()[0]
+
+                if count > 0:
+                    if nota_valor is None or nota_alumno is None:
+                        cursor.execute(
+                            "DELETE FROM nota WHERE criterio_id = %s AND alumno_curso_id = %s",
+                            (criterio_id, alumno_curso_id)
+                        )
+                    else:
+                        cursor.execute(
+                            """
+                            UPDATE nota
+                            SET nota = %s, nota_alumno = %s
+                            WHERE criterio_id = %s AND alumno_curso_id = %s
+                            """,
+                            (nota_valor, nota_alumno, criterio_id, alumno_curso_id)
+                        )
+                elif nota_valor is not None and nota_alumno is not None:
+                    cursor.execute(
+                        """
+                        INSERT INTO nota (alumno_curso_id, criterio_id, nota, nota_alumno)
+                        VALUES (%s, %s, %s, %s)
+                        """,
+                        (alumno_curso_id, criterio_id, nota_valor, nota_alumno)
+                    )
+
+            if all(
+                self._is_valid_nota(n.get('nota')) and self._is_valid_nota(n.get('notaAlumno'))
+                for n in notas
+            ):
+                promedio_nota = sum(
+                    float(n['nota']) * (float(n['porcentaje']) / 100)
+                    for n in notas
+                )
+                promedio_nota_alumno = sum(
+                    float(n['notaAlumno']) * (float(n['porcentaje']) / 100)
+                    for n in notas
+                )
+
+                estado = 'A' if promedio_nota_alumno >= 11.6 else 'D'
+
+                cursor.execute(
+                    """
+                    UPDATE alumno_curso
+                    SET nota_final = %s, nota_alumno_final = %s, estado = %s
+                    WHERE id = %s
+                    """,
+                    (promedio_nota, promedio_nota_alumno, estado, alumno_curso_id)
+                )
+
+            connection.commit() 
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()
+
+    @staticmethod
+    def _convert_to_valid_number(value):
+        """Convierte un valor vacío ('') o inválido en None; valida números."""
+        try:
+            return float(value) if value not in (None, '') else None
+        except ValueError:
+            return None
+
+    @staticmethod
+    def _is_valid_nota(value):
+        """Valida si una nota es un número válido."""
+        try:
+            return value is not None and float(value) >= 0
+        except ValueError:
+            return False
