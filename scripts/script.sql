@@ -188,7 +188,7 @@ LEFT JOIN nota n on a.id=n.criterio_id and n.alumno_curso_id=7
 WHERE a.curso_id=1 
 ORDER BY  orden asc;
 
-SELECT count(*) FROM nota a
+SELECT * FROM nota a
 WHERE a.criterio_id=10 and alumno_curso_id=1;
 
 INSERT INTO nota(alumno_curso_id,criterio_id,nota,nota_alumno)
@@ -206,14 +206,5 @@ nota_alumno_final=20,
 estado='--' 
 WHERE a.id=10;
 
-
-SELECT c.id, c.nombre AS curso, c.horas_semanales, c.creditos, c.modalidad,
-				(SELECT count(*) FROM alumno_curso cc where cc.curso_id=c.id and activo=true) alumnos
-                FROM docente_curso dc
-                INNER JOIN curso c ON dc.curso_id = c.id
-                INNER JOIN usuario u ON dc.usuario_id = u.id
-                WHERE dc.usuario_id = 1 AND u.rol_id = 2
-                ORDER BY curso ASC;
-
-
+SELECT * FROM alumno_curso;
 
