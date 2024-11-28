@@ -11,7 +11,8 @@ class DocenteService:
 
         try:
             query = """
-                SELECT c.id, c.nombre AS curso, c.horas_semanales, c.creditos, c.modalidad
+                SELECT c.id, c.nombre AS curso, c.horas_semanales, c.creditos, c.modalidad,
+                (SELECT count(*) FROM alumno_curso cc where cc.curso_id=c.id and activo=true) alumnos
                 FROM docente_curso dc
                 INNER JOIN curso c ON dc.curso_id = c.id
                 INNER JOIN usuario u ON dc.usuario_id = u.id
@@ -26,7 +27,9 @@ class DocenteService:
                     curso=result['curso'],
                     horas_semanales=result['horas_semanales'],
                     creditos=result['creditos'],
-                    modalidad=result['modalidad']
+                    modalidad=result['modalidad'],
+                    alumnos=result['alumnos'],
+
                 )
                 cursos.append(curso)
         finally:
@@ -45,6 +48,9 @@ class DocenteService:
             query = """
                 SELECT 
                 uc.id,
+                uc.nota_final,
+                CAST(uc.nota_alumno_final AS UNSIGNED) as nota_alumno_final,
+                uc.estado,
                 u.nombre,u.paterno,u.materno,u.codigo
                 FROM alumno_curso uc
                 INNER JOIN usuario u ON uc.usuario_id=u.id
@@ -59,7 +65,10 @@ class DocenteService:
                     nombre=result['nombre'],
                     paterno=result['paterno'],
                     materno=result['materno'],
-                    codigo=result['codigo']
+                    codigo=result['codigo'],
+                    notaFinal=result['nota_final'],
+                    notaAlumnoFinal=result['nota_alumno_final'],
+                    estado=result['estado']
                 )
                 alumnoListaCursos.append(alumnoListaCurso)
         finally:
@@ -120,6 +129,9 @@ class DocenteService:
                     for n in notas
                 )
 
+                promedio_nota_alumno_transformed = self.nota_favor_alumno(promedio_nota_alumno)
+
+
                 estado = 'A' if promedio_nota_alumno >= 11.6 else 'D'
 
                 cursor.execute(
@@ -128,7 +140,16 @@ class DocenteService:
                     SET nota_final = %s, nota_alumno_final = %s, estado = %s
                     WHERE id = %s
                     """,
-                    (promedio_nota, promedio_nota_alumno, estado, alumno_curso_id)
+                    (promedio_nota, promedio_nota_alumno_transformed, estado, alumno_curso_id)
+                )
+            else:
+                cursor.execute(
+                    """
+                    UPDATE alumno_curso
+                    SET nota_final = NULL, nota_alumno_final = NULL, estado = 'E'
+                    WHERE id = %s
+                    """,
+                    (alumno_curso_id,)
                 )
 
             connection.commit() 
@@ -141,7 +162,7 @@ class DocenteService:
 
     @staticmethod
     def _convert_to_valid_number(value):
-        """Convierte un valor vacío ('') o inválido en None; valida números."""
+        """Convierte un valor vacío ('') o inválido en None; valida números"""
         try:
             return float(value) if value not in (None, '') else None
         except ValueError:
@@ -149,8 +170,14 @@ class DocenteService:
 
     @staticmethod
     def _is_valid_nota(value):
-        """Valida si una nota es un número válido."""
+        """Valida si una nota es un número válido"""
         try:
             return value is not None and float(value) >= 0
         except ValueError:
             return False
+        
+    @staticmethod
+    def nota_favor_alumno(value: float) -> str:
+        """Redondea el valor según las reglas dadas y devuelve el resultado como un string."""
+        rounded = int(value) + 1 if value % 1 > 0.5 else int(value)
+        return f"0{rounded}" if rounded < 10 else str(rounded)

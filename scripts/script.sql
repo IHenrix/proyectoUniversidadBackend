@@ -200,10 +200,20 @@ nota_alumno=20
 WHERE a.criterio_id=10 and alumno_curso_id=1;
 
 
+UPDATE alumno_curso
+SET nota_final=20,
+nota_alumno_final=20,
+estado='--' 
+WHERE a.id=10;
 
 
-
-
+SELECT c.id, c.nombre AS curso, c.horas_semanales, c.creditos, c.modalidad,
+				(SELECT count(*) FROM alumno_curso cc where cc.curso_id=c.id and activo=true) alumnos
+                FROM docente_curso dc
+                INNER JOIN curso c ON dc.curso_id = c.id
+                INNER JOIN usuario u ON dc.usuario_id = u.id
+                WHERE dc.usuario_id = 1 AND u.rol_id = 2
+                ORDER BY curso ASC;
 
 
 
