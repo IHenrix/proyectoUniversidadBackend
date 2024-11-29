@@ -186,3 +186,36 @@ class DocenteService:
         rounded = int(value) + 1 if decimal_part >= 0.6 else int(value)
         return f"0{rounded}" if rounded < 10 else str(rounded)
 
+    def eliminar_nota(self, nota_id, alumno_curso_id):
+        """
+        Elimina una nota específica basad en su ID y valida si quedan notas asociadas al alumno
+        Si no quedan notas, actualiza alumno_curso para resetear los campos
+        """
+        connection = get_db_connection(db_config)
+        cursor = connection.cursor()
+        try:
+            cursor.execute("DELETE FROM nota WHERE id = %s", (nota_id,))
+            filas_afectadas = cursor.rowcount
+            if filas_afectadas > 0:
+                
+                cursor.execute("SELECT count(*) FROM alumno_curso WHERE id=%s and estado='E'", (alumno_curso_id,))
+                count = cursor.fetchone()[0]
+
+                if count == 0:
+                    cursor.execute(
+                        """
+                        UPDATE alumno_curso
+                        SET nota_final = NULL, nota_alumno_final = NULL, nota_alumno_real = NULL, estado = 'E'
+                        WHERE id = %s
+                        """,
+                        (alumno_curso_id,)
+                    )
+
+            connection.commit() 
+            return filas_afectadas
+        except Exception as e:
+            connection.rollback()
+            raise e
+        finally:
+            cursor.close()
+            connection.close()

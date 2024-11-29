@@ -64,9 +64,11 @@ class AlumnoService:
 
         try:
             query = """
-                SELECT a.id, a.nombre_criterio AS criterio, a.orden, a.porcentaje,
+                SELECT a.id, a.nombre_criterio AS criterio, a.orden,
+                 CAST(a.porcentaje AS UNSIGNED) AS porcentaje,
                        n.nota,
-                       LPAD(CAST(n.nota_alumno AS UNSIGNED), 2, '0') AS nota_alumno
+                       LPAD(CAST(n.nota_alumno AS UNSIGNED), 2, '0') AS nota_alumno,
+                       n.id nota_id
                 FROM criterio_evaluacion a
                 LEFT JOIN nota n ON a.id = n.criterio_id AND n.alumno_curso_id = %s
                 WHERE a.curso_id = %s
@@ -81,7 +83,8 @@ class AlumnoService:
                     orden=result['orden'],
                     porcentaje=result['porcentaje'],
                     nota=result['nota'],
-                    notaAlumno=result['nota_alumno']
+                    notaAlumno=result['nota_alumno'],
+                    notaId=result['nota_id']
                 )
                 notas.append(nota)
         finally:

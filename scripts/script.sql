@@ -79,7 +79,7 @@ INSERT INTO rol (nombre) VALUES ('PROFESOR');
 INSERT INTO usuario (username, pass, nombre, paterno, materno,sexo,correo,codigo, rol_id) 
 VALUES 
   ('RPRADA', 'Marco1415', 'RICARDO ENRIQUE', 'PRADA', 'GUERRA','M','rprada@hotmail.com',null, 2),
-  ('JMORALES', 'Marco1415', 'JUAN JOSÉ MORALES', 'MORALES', 'VELASQUEZ','M','jmorales@hotmail.com','U23316357', 1),
+  ('JMORALES', 'Marco1415', 'JUAN JOSÉ', 'MORALES', 'VELASQUEZ','M','jmorales@hotmail.com','U23316357', 1),
   ('NLOPEZO', 'Marco1415', 'NIKOL', 'LOPEZ', 'OCHOA','F','nlopezo@hotmail.com','U23316358', 1);
   
 INSERT INTO curso (nombre,horas_semanales,creditos,modalidad) VALUES ('Taller de programación (1I50N)',4,3,'P');
@@ -193,20 +193,4 @@ ORDER BY  orden asc;
 SELECT * FROM nota a
 WHERE a.criterio_id=10 and alumno_curso_id=1;
 
-INSERT INTO nota(alumno_curso_id,criterio_id,nota,nota_alumno)
-VALUES(1,10,17.5,17);
-
-UPDATE nota
-SET nota=20,
-nota_alumno=20
-WHERE a.criterio_id=10 and alumno_curso_id=1;
-
-
-UPDATE alumno_curso
-SET nota_final=20,
-nota_alumno_final=20,
-estado='--' 
-WHERE a.id=10;
-
-SELECT * FROM alumno_curso;
-
+SELECT count(*) FROM alumno_curso WHERE id=9 and estado='E'
