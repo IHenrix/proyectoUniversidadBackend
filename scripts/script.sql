@@ -36,6 +36,7 @@ CREATE TABLE alumno_curso(
     curso_id INT NOT NULL,
     estado char(1) DEFAULT 'E' NOT NULL,
     nota_final DECIMAL(5,2) NULL,
+    nota_alumno_real DECIMAL(5,2) NULL,
     nota_alumno_final DECIMAL(5,2) NULL,
 	activo BOOLEAN DEFAULT TRUE,
     FOREIGN KEY (usuario_id) REFERENCES usuario(id),
@@ -147,6 +148,7 @@ VALUES
 (4, 'Avance de informe 2 (AIF2)', 2, 20.00),
 (4, 'Avance de informe 3 (AIF3)', 3, 20.00),
 (4, 'Informe final (IF)', 4, 40.00);
+
 
 -- BUSCAR USUARIO
 SELECT * FROM usuario u WHERE u.username='RPRADA' AND u.pass='Marco1415';

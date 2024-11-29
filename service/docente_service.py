@@ -49,9 +49,10 @@ class DocenteService:
                 SELECT 
                 uc.id,
                 uc.nota_final,
-                CAST(uc.nota_alumno_final AS UNSIGNED) as nota_alumno_final,
+                LPAD(CAST(uc.nota_alumno_final AS UNSIGNED), 2, '0') AS nota_alumno_final,
                 uc.estado,
-                u.nombre,u.paterno,u.materno,u.codigo
+                u.nombre,u.paterno,u.materno,u.codigo,
+                uc.nota_alumno_real
                 FROM alumno_curso uc
                 INNER JOIN usuario u ON uc.usuario_id=u.id
                 WHERE uc.curso_id=%s
@@ -68,7 +69,8 @@ class DocenteService:
                     codigo=result['codigo'],
                     notaFinal=result['nota_final'],
                     notaAlumnoFinal=result['nota_alumno_final'],
-                    estado=result['estado']
+                    estado=result['estado'],
+                    notaAlumnoReal=result['nota_alumno_real']
                 )
                 alumnoListaCursos.append(alumnoListaCurso)
         finally:
@@ -128,6 +130,7 @@ class DocenteService:
                     float(n['notaAlumno']) * (float(n['porcentaje']) / 100)
                     for n in notas
                 )
+                
 
                 promedio_nota_alumno_transformed = self.nota_favor_alumno(promedio_nota_alumno)
 
@@ -137,16 +140,16 @@ class DocenteService:
                 cursor.execute(
                     """
                     UPDATE alumno_curso
-                    SET nota_final = %s, nota_alumno_final = %s, estado = %s
+                    SET nota_final = %s, nota_alumno_final = %s, estado = %s, nota_alumno_real = %s
                     WHERE id = %s
                     """,
-                    (promedio_nota, promedio_nota_alumno_transformed, estado, alumno_curso_id)
+                    (promedio_nota, promedio_nota_alumno_transformed, estado,promedio_nota_alumno,alumno_curso_id)
                 )
             else:
                 cursor.execute(
                     """
                     UPDATE alumno_curso
-                    SET nota_final = NULL, nota_alumno_final = NULL, estado = 'E'
+                    SET nota_final = NULL, nota_alumno_final = NULL, nota_alumno_real = NULL, estado = 'E'
                     WHERE id = %s
                     """,
                     (alumno_curso_id,)
@@ -178,6 +181,8 @@ class DocenteService:
         
     @staticmethod
     def nota_favor_alumno(value: float) -> str:
-        """Redondea el valor según las reglas dadas y devuelve el resultado como un string."""
-        rounded = int(value) + 1 if value % 1 > 0.5 else int(value)
+        """Redondea el valor según las reglas dadas (>= 0.6) y devuelve el resultado como un string."""
+        decimal_part = round(value % 1, 2) 
+        rounded = int(value) + 1 if decimal_part >= 0.6 else int(value)
         return f"0{rounded}" if rounded < 10 else str(rounded)
+
